@@ -1,9 +1,0 @@
-* {
-  --primary: black;
-  --primary-text: white;
-}
-
-body {
-  background-color: var(--primary);
-  color: var(--primary-text);
-}

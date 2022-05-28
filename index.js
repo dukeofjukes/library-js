@@ -1,30 +1,69 @@
-const tableEl = document.querySelector("table");
-const titleInput = document.querySelector("#title-input");
-const authorInput = document.querySelector("#author-input");
-const pagesReadInput = document.querySelector("#pages-read-input");
-const totalPagesInput = document.querySelector("#total-pages-input");
-const addBookBtn = document.querySelector("#add-book-btn");
+class Library {
+  constructor() {
+    this.arr = [];
+  }
 
-addBookBtn.addEventListener("click", () => {
-  addBookToLibrary();
-});
+  addBook(title, author, progress, total) {
+    let newBook = new Book(title, author, progress, total);
+    this.arr.push(newBook);
 
-let myLibrary = [];
-
-class Book {
-  constructor(title, author, isbn) {
-    this.title = title;
-    this.author = author;
-    this.isbn = isbn;
+    return newBook;
   }
 }
 
-function addBookToLibrary() {
-  console.log("added");
-  // check if any field is empty, and change its color
-  // get book info from gui
-  // let newBook = Object.create(Book(title, author, isbn));
-  // myLibrary.append(newBook)
-  // update tableEl (write a function?)
-  // TODO: make library a class?
+class Book {
+  constructor(title, author, progress, total) {
+    this.title = title;
+    this.author = author;
+    this.progress = progress;
+    this.total = total;
+  }
 }
+
+let library = new Library();
+
+const formEl = document.querySelector(".add-book-form");
+const addBookBtn = document.querySelector("#add-book-btn");
+const tableEl = document.querySelector("table");
+
+formEl.addEventListener("submit", (e) => {
+  e.preventDefault(); // stop page from reloading (default behavior)
+
+  // check if required fields are filled
+  let allFilled = true;
+  formEl.querySelectorAll("[required]").forEach((i) => {
+    if (!i.value) {
+      // TODO: change color of field to red;
+      allFilled = false;
+      return;
+    }
+  });
+
+  if (!allFilled) {
+    return;
+  }
+
+  let inputs = formEl.elements;
+  let newBook = library.addBook(
+    inputs["title"].value,
+    inputs["author"].value,
+    inputs["progress"].value,
+    inputs["total"].value
+  );
+
+  addBookToTable(newBook);
+});
+
+function addBookToTable(book) {
+  let row = tableEl.insertRow(-1);
+  row.innerHTML += `
+    <td>${book.title}</td>
+    <td>${book.author}</td>
+    <td>${book.progress}</td>
+    <td>${book.total}</td>
+  `;
+  // TODO: add remove and edit btn
+}
+
+// TODO:
+// function removeBookFromTable(index) {}

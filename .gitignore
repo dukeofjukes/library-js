@@ -1,0 +1,8 @@
+# ignore hidden files/directories
+.*
+
+# ignore generated css files
+public/
+
+# include gitignore
+!.gitignore
