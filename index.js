@@ -52,15 +52,21 @@ formEl.addEventListener("submit", (e) => {
   );
 
   addBookToTable(newBook);
+
+  // clear inputs
+  formEl.querySelectorAll("input").forEach((i) => {
+    i.value = "";
+  });
 });
 
 function addBookToTable(book) {
   let row = tableEl.insertRow(-1);
+  row.classList.add("entry");
   row.innerHTML += `
     <td>${book.title}</td>
     <td>${book.author}</td>
-    <td>${book.progress}</td>
-    <td>${book.total}</td>
+    <td class="num">${book.progress}</td>
+    <td class="num">${book.total}</td>
   `;
   // TODO: add remove and edit btn
 }
