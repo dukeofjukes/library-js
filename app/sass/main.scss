@@ -5,6 +5,7 @@ $card-color: rgb(44, 44, 44);
 $entry-color: rgb(55, 55, 55);
 $required-field: red;
 $add-btn: green;
+$edit-btn: blue;
 $remove-btn: red;
 
 body {
@@ -29,7 +30,7 @@ form {
   align-items: center;
 
   label {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
   
   input {
@@ -64,6 +65,14 @@ form {
   border-radius: 24px;
 }
 
+@mixin small-btn {
+  font-size: 1rem;
+  padding: 6px 12px;
+  color: $primary-text-color;
+  border-style: none;
+  border-radius: 8px;
+}
+
 table {
   @include card;
   width: 800px;
@@ -72,16 +81,29 @@ table {
   tr {
     @include entry-card;
     display: grid;
-    grid-template-columns: 3fr 2fr 1fr 1fr;
+    grid-template-columns: 3fr 2fr 1fr 1fr 1fr 1fr;
+    gap: 12px;
   }
 
   tr.entry {
-    @include entry-card;
-    display: grid;
-    grid-template-columns: 3fr 2fr 1fr 1fr;
-
     td.num {
       text-align: right;
     }
+  }
+
+  td.btn-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #edit-btn {
+    @include small-btn;
+    background-color: $edit-btn;
+  }
+
+  #remove-btn {
+    @include small-btn;
+    background-color: $remove-btn;
   }
 }

@@ -67,6 +67,8 @@ function addBookToTable(book) {
     <td>${book.author}</td>
     <td class="num">${book.progress}</td>
     <td class="num">${book.total}</td>
+    <td class="btn-cell"><button id="edit-btn"><i class="fa-solid fa-pen"></i></button></td>
+    <td class="btn-cell"><button id="remove-btn"><i class="fa-solid fa-xmark"></i></button></td>
   `;
   // TODO: add remove and edit btn
 }
