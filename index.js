@@ -6,8 +6,17 @@ class Library {
   addBook(title, author, progress, total) {
     let newBook = new Book(title, author, progress, total);
     this.arr.push(newBook);
-
+    localStorage.setItem("library", JSON.stringify(this.arr));
     return newBook;
+  }
+
+  removeBook(index) {
+    this.arr.splice(index, 1);
+    localStorage.setItem("library", JSON.stringify(this.arr));
+  }
+
+  getBook(index) {
+    return this.arr[index];
   }
 }
 
@@ -20,11 +29,37 @@ class Book {
   }
 }
 
-let library = new Library();
-
+const createBookBtn = document.querySelector("#create-book-btn");
+const modalEl = document.querySelector(".modal");
+const closeModalBtn = document.querySelector("#close-modal-btn");
 const formEl = document.querySelector(".add-book-form");
 const addBookBtn = document.querySelector("#add-book-btn");
 const tableEl = document.querySelector("table");
+
+let library = new Library();
+console.log(localStorage.getItem("library"));
+if (window.localStorage.getItem("library") != null) {
+  library.arr = JSON.parse(localStorage.getItem("library"));
+  library.arr.forEach((book) => {
+    addBookToTable(book);
+  });
+}
+
+createBookBtn.addEventListener("click", (e) => {
+  modalEl.style.display = "block";
+});
+
+closeModalBtn.addEventListener("click", (e) => {
+  modalEl.style.display = "none";
+  clearInputFields();
+});
+
+window.onclick = function (e) {
+  if (e.target === modalEl) {
+    modalEl.style.display = "none";
+    clearInputFields();
+  }
+};
 
 formEl.addEventListener("submit", (e) => {
   e.preventDefault(); // stop page from reloading (default behavior)
@@ -52,11 +87,8 @@ formEl.addEventListener("submit", (e) => {
   );
 
   addBookToTable(newBook);
-
-  // clear inputs
-  formEl.querySelectorAll("input").forEach((i) => {
-    i.value = "";
-  });
+  clearInputFields();
+  console.log(localStorage.getItem("library"));
 });
 
 function addBookToTable(book) {
@@ -67,11 +99,47 @@ function addBookToTable(book) {
     <td>${book.author}</td>
     <td class="num">${book.progress}</td>
     <td class="num">${book.total}</td>
-    <td class="btn-cell"><button id="edit-btn"><i class="fa-solid fa-pen"></i></button></td>
-    <td class="btn-cell"><button id="remove-btn"><i class="fa-solid fa-xmark"></i></button></td>
+    <td class="btn-cell">
+      <button class="edit-btn"><i class="fa-solid fa-pen"></i></button>
+      <button class="remove-btn"><i class="fa-solid fa-trash"></i></button>
+    </td>
   `;
-  // TODO: add remove and edit btn
+  addEntryEventListeners();
 }
 
-// TODO:
-// function removeBookFromTable(index) {}
+function clearInputFields() {
+  formEl.querySelectorAll("input").forEach((i) => {
+    i.value = "";
+  });
+}
+
+function addEntryEventListeners() {
+  editBtns = document.querySelectorAll(".edit-btn");
+  removeBtns = document.querySelectorAll(".remove-btn");
+
+  editBtns.forEach((btn, index) => {
+    btn.addEventListener("click", () => {
+      let book = library.getBook(index);
+      modalEl.style.display = "block";
+      formEl.title.value = book.title;
+      formEl.author.value = book.author;
+      formEl.progress.value = book.progress;
+      formEl.total.value = book.total;
+    });
+  });
+
+  removeBtns.forEach((btn, index) => {
+    btn.addEventListener("click", (e) => {
+      library.removeBook(index);
+      // FIXME: this keeps propagating and deleting every book from the array
+
+      let rowEl = e.target.parentElement.parentElement.parentElement;
+      removeBookFromTable(rowEl);
+      console.log(localStorage.getItem("library"));
+    });
+  });
+}
+
+function removeBookFromTable(rowEl) {
+  rowEl.remove();
+}

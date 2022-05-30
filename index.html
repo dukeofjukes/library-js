@@ -12,30 +12,40 @@
     <title>Library</title>
   </head>
   <body>
-    <form class="add-book-form">
-      <label for="title">Title</label>
-      <input type="text" name="title" required />
+    <div class="modal">
+      <form class="add-book-form">
+        <div class="topright">
+          <button id="close-modal-btn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <label for="title">Title</label>
+        <input type="text" name="title" required />
+        <label for="author">Author</label>
+        <input type="text" name="author" required />
+        <label for="pages-read">Pages Read</label>
+        <input type="number" name="progress" />
+        <label for="total-pages">Total Pages</label>
+        <input type="number" name="total" />
+        <button id="add-book-btn" type="submit">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </form>
+    </div>
 
-      <label for="author">Author</label>
-      <input type="text" name="author" required />
-
-      <label for="pages-read">Pages Read</label>
-      <input type="number" name="progress" />
-      <label for="total-pages">Total Pages</label>
-      <input type="number" name="total" />
-      <button id="add-book-btn" type="submit">
+    <div class="card">
+      <table>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Progress</th>
+          <th>Total</th>
+        </tr>
+      </table>
+      <button id="create-book-btn">
         <i class="fa-solid fa-plus"></i>
       </button>
-    </form>
-
-    <table>
-      <tr>
-        <th>Title</th>
-        <th>Author</th>
-        <th>Progress</th>
-        <th>Total</th>
-      </tr>
-    </table>
+    </div>
 
     <script src="./index.js"></script>
   </body>
