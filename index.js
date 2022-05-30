@@ -1,3 +1,6 @@
+/**
+  Manages the library array and local storage.
+*/
 class Library {
   constructor() {
     this.arr = [];
@@ -18,8 +21,27 @@ class Library {
   getBook(index) {
     return this.arr[index];
   }
+
+  getIndex(query) {
+    this.arr.forEach((book, index) => {
+      if (book === query) {
+        return index;
+      }
+    });
+    return -1;
+  }
+
+  overwriteBook(index, title, author, progress, total) {
+    let newBook = new Book(title, author, progress, total);
+    this.arr[index] = newBook;
+    localStorage.setItem("library", JSON.stringify(this.arr));
+    return newBook;
+  }
 }
 
+/**
+  Defines book fields.
+*/
 class Book {
   constructor(title, author, progress, total) {
     this.title = title;
@@ -29,56 +51,57 @@ class Book {
   }
 }
 
+/* Get DOM elements. */
 const createBookBtn = document.querySelector("#create-book-btn");
-const modalEl = document.querySelector(".modal");
-const closeModalBtn = document.querySelector("#close-modal-btn");
-const formEl = document.querySelector(".add-book-form");
+const addModal = document.querySelector("#add-modal");
+const editModal = document.querySelector("#edit-modal");
+const closeModalBtns = document.querySelectorAll(".close-modal-btn");
+const addForm = document.querySelector(".add-book-form");
+const editForm = document.querySelector(".edit-book-form");
 const addBookBtn = document.querySelector("#add-book-btn");
 const tableEl = document.querySelector("table");
 
+/* Initialize */
+let currentEditingIndex = -1;
 let library = new Library();
 console.log(localStorage.getItem("library"));
-if (window.localStorage.getItem("library") != null) {
-  library.arr = JSON.parse(localStorage.getItem("library"));
-  library.arr.forEach((book) => {
-    addBookToTable(book);
-  });
-}
+reloadTable();
 
 createBookBtn.addEventListener("click", (e) => {
-  modalEl.style.display = "block";
+  addModal.style.display = "block";
 });
 
-closeModalBtn.addEventListener("click", (e) => {
-  modalEl.style.display = "none";
-  clearInputFields();
-});
+closeModalBtns.forEach((btn) =>
+  btn.addEventListener("click", (e) => {
+    let modal = e.target.parentNode.parentNode.parentNode.parentNode;
+    if (modal === addModal) {
+      addModal.style.display = "none";
+      clearInputFields(addModal);
+    } else if (modal === editModal) {
+      editModal.style.display = "none";
+      clearInputFields(editModal);
+    }
+  })
+);
 
 window.onclick = function (e) {
-  if (e.target === modalEl) {
-    modalEl.style.display = "none";
-    clearInputFields();
+  if (e.target === addModal) {
+    addModal.style.display = "none";
+    clearInputFields(addForm);
+  } else if (e.target === editModal) {
+    editModal.style.display = "none";
+    clearInputFields(editForm);
   }
 };
 
-formEl.addEventListener("submit", (e) => {
-  e.preventDefault(); // stop page from reloading (default behavior)
+addForm.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-  // check if required fields are filled
-  let allFilled = true;
-  formEl.querySelectorAll("[required]").forEach((i) => {
-    if (!i.value) {
-      // TODO: change color of field to red;
-      allFilled = false;
-      return;
-    }
-  });
-
-  if (!allFilled) {
+  if (!checkRequiredInputs(addForm)) {
     return;
   }
 
-  let inputs = formEl.elements;
+  let inputs = addForm.elements;
   let newBook = library.addBook(
     inputs["title"].value,
     inputs["author"].value,
@@ -87,9 +110,45 @@ formEl.addEventListener("submit", (e) => {
   );
 
   addBookToTable(newBook);
-  clearInputFields();
+  clearInputFields(addForm);
+  addModal.style.display = "none";
   console.log(localStorage.getItem("library"));
 });
+
+editForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  if (!checkRequiredInputs(editForm)) {
+    return;
+  }
+
+  let inputs = editForm.elements;
+  library.overwriteBook(
+    currentEditingIndex,
+    inputs["title"].value,
+    inputs["author"].value,
+    inputs["progress"].value,
+    inputs["total"].value
+  );
+
+  clearInputFields(editForm);
+  reloadTable();
+  editModal.style.display = "none";
+  console.log(localStorage.getItem("library"));
+});
+
+function checkRequiredInputs(form) {
+  let allFilled = true;
+  form.querySelectorAll("[required]").forEach((i) => {
+    if (!i.value) {
+      // TODO: change color of field to red;
+      allFilled = false;
+      return;
+    }
+  });
+
+  return allFilled;
+}
 
 function addBookToTable(book) {
   let row = tableEl.insertRow(-1);
@@ -107,8 +166,8 @@ function addBookToTable(book) {
   addEntryEventListeners();
 }
 
-function clearInputFields() {
-  formEl.querySelectorAll("input").forEach((i) => {
+function clearInputFields(form) {
+  form.querySelectorAll("input").forEach((i) => {
     i.value = "";
   });
 }
@@ -119,21 +178,28 @@ function addEntryEventListeners() {
 
   editBtns.forEach((btn, index) => {
     btn.addEventListener("click", () => {
+      currentEditingIndex = index;
+      editModal.style.display = "block";
+
       let book = library.getBook(index);
-      modalEl.style.display = "block";
-      formEl.title.value = book.title;
-      formEl.author.value = book.author;
-      formEl.progress.value = book.progress;
-      formEl.total.value = book.total;
+      editForm.title.value = book.title;
+      editForm.author.value = book.author;
+      editForm.progress.value = book.progress;
+      editForm.total.value = book.total;
     });
   });
 
   removeBtns.forEach((btn, index) => {
+    console.log("adding event listener ", index);
     btn.addEventListener("click", (e) => {
-      library.removeBook(index);
       // FIXME: this keeps propagating and deleting every book from the array
+      // i think this is because event listeners are getting added every single time a new book is created
+      // need to only add event listeners on creation.
+      console.log(index);
+      library.removeBook(index);
 
-      let rowEl = e.target.parentElement.parentElement.parentElement;
+      let rowEl = e.target.parentElement.parentElement;
+      console.log("row: " + rowEl);
       removeBookFromTable(rowEl);
       console.log(localStorage.getItem("library"));
     });
@@ -142,4 +208,17 @@ function addEntryEventListeners() {
 
 function removeBookFromTable(rowEl) {
   rowEl.remove();
+}
+
+function reloadTable() {
+  if (window.localStorage.getItem("library") != null) {
+    tableEl.querySelectorAll("tr.entry").forEach((row) => {
+      row.remove();
+    });
+
+    library.arr = JSON.parse(localStorage.getItem("library"));
+    library.arr.forEach((book) => {
+      addBookToTable(book);
+    });
+  }
 }

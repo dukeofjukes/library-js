@@ -23,8 +23,7 @@ body {
 }
 
 .modal {
-  // hide by default
-  display: none;
+  display: none; // hide by default
   position: fixed;
   z-index: 1;
   left: 0;
@@ -36,7 +35,7 @@ body {
   background-color: rgba(0, 0, 0, 0.4);
 }
 
-#close-modal-btn {
+.close-modal-btn {
   border: none;
   display: inline-block;
   padding: 32px 32px;
@@ -58,7 +57,8 @@ body {
 }
 
 #add-book-btn,
-#create-book-btn {
+#create-book-btn,
+#confirm-edit-book-btn {
   background-color: $add-btn;
   font-size: 1.5rem;
   padding: 12px 24px;
