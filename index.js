@@ -6,8 +6,8 @@ class Library {
     this.arr = [];
   }
 
-  addBook(title, author, progress, total) {
-    let newBook = new Book(title, author, progress, total);
+  addBook(title, author, progress, total, row) {
+    let newBook = new Book(title, author, progress, total, row);
     this.arr.push(newBook);
     localStorage.setItem("library", JSON.stringify(this.arr));
     return newBook;
@@ -43,11 +43,12 @@ class Library {
   Defines book fields.
 */
 class Book {
-  constructor(title, author, progress, total) {
+  constructor(title, author, progress, total, row) {
     this.title = title;
     this.author = author;
     this.progress = progress;
     this.total = total;
+    this.row = row;
   }
 }
 
@@ -106,7 +107,8 @@ addForm.addEventListener("submit", (e) => {
     inputs["title"].value,
     inputs["author"].value,
     inputs["progress"].value,
-    inputs["total"].value
+    inputs["total"].value,
+    tableEl.insertRow(-1)
   );
 
   addBookToTable(newBook);
@@ -141,7 +143,6 @@ function checkRequiredInputs(form) {
   let allFilled = true;
   form.querySelectorAll("[required]").forEach((i) => {
     if (!i.value) {
-      // TODO: change color of field to red;
       allFilled = false;
       return;
     }
@@ -151,9 +152,8 @@ function checkRequiredInputs(form) {
 }
 
 function addBookToTable(book) {
-  let row = tableEl.insertRow(-1);
-  row.classList.add("entry");
-  row.innerHTML += `
+  book.row.classList.add("entry");
+  book.row.innerHTML += `
     <td>${book.title}</td>
     <td>${book.author}</td>
     <td class="num">${book.progress}</td>
@@ -163,7 +163,7 @@ function addBookToTable(book) {
       <button class="remove-btn"><i class="fa-solid fa-trash"></i></button>
     </td>
   `;
-  addEntryEventListeners();
+  addEntryEventListeners(book);
 }
 
 function clearInputFields(form) {
@@ -172,37 +172,25 @@ function clearInputFields(form) {
   });
 }
 
-function addEntryEventListeners() {
-  editBtns = document.querySelectorAll(".edit-btn");
-  removeBtns = document.querySelectorAll(".remove-btn");
+function addEntryEventListeners(book) {
+  editBtn = book.row.querySelector(".edit-btn");
+  removeBtn = book.row.querySelector(".remove-btn");
 
-  editBtns.forEach((btn, index) => {
-    btn.addEventListener("click", () => {
-      currentEditingIndex = index;
-      editModal.style.display = "block";
+  editBtn.addEventListener("click", () => {
+    currentEditingIndex = index;
+    editModal.style.display = "block";
 
-      let book = library.getBook(index);
-      editForm.title.value = book.title;
-      editForm.author.value = book.author;
-      editForm.progress.value = book.progress;
-      editForm.total.value = book.total;
-    });
+    editForm.title.value = book.title;
+    editForm.author.value = book.author;
+    editForm.progress.value = book.progress;
+    editForm.total.value = book.total;
   });
 
-  removeBtns.forEach((btn, index) => {
-    console.log("adding event listener ", index);
-    btn.addEventListener("click", (e) => {
-      // FIXME: this keeps propagating and deleting every book from the array
-      // i think this is because event listeners are getting added every single time a new book is created
-      // need to only add event listeners on creation.
-      console.log(index);
-      library.removeBook(index);
+  removeBtn.addEventListener("click", () => {
+    library.removeBook(library.getIndex(book));
 
-      let rowEl = e.target.parentElement.parentElement;
-      console.log("row: " + rowEl);
-      removeBookFromTable(rowEl);
-      console.log(localStorage.getItem("library"));
-    });
+    removeBookFromTable(book.row);
+    console.log(localStorage.getItem("library"));
   });
 }
 
@@ -218,6 +206,7 @@ function reloadTable() {
 
     library.arr = JSON.parse(localStorage.getItem("library"));
     library.arr.forEach((book) => {
+      book.row = tableEl.insertRow(-1);
       addBookToTable(book);
     });
   }
