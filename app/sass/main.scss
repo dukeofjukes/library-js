@@ -4,7 +4,7 @@ $primary-text-color: rgb(236, 236, 236);
 $card-color: rgb(44, 44, 44);
 $entry-color: rgb(55, 55, 55);
 $add-btn: rgb(58, 146, 58);
-$edit-btn: blue;
+$edit-btn: rgb(62, 62, 184);
 $remove-btn: rgb(196, 66, 66);
 
 body {
@@ -129,19 +129,30 @@ form {
   thead {
     margin: 0;
     padding: 0;
+
+    tr {
+      display: grid;
+      grid-template-columns: 3fr 2fr 1fr 1fr;
+      padding: 8px;
+      margin: 0 12px 0 12px;
+      align-items: center;
+      gap: 12px;
+    }
   }
 
   tbody {
     margin: 0;
     padding: 0;
-  }
-  
-  tr {
-    @include entry-card;
-    display: grid;
-    grid-template-columns: 3fr 2fr 1fr .5fr;
-    align-items: center;
-    gap: 12px;
+
+    tr {
+      @include entry-card;
+      display: grid;
+      grid-template-columns: 3fr 2fr 1fr .5fr;
+      margin: 12px;
+      padding: 12px;
+      align-items: center;
+      gap: 12px;
+    }
   }
   
   th {

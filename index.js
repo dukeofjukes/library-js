@@ -41,12 +41,23 @@ class Library {
     return [];
   }
 
+  static getBookFromID(id) {
+    const lib = Library.get();
+
+    lib.forEach((book) => {
+      if (book.id === id) {
+        return book;
+      }
+    });
+
+    return null;
+  }
+
   static addBook(title, author, progress, total) {
     const id = Library.getNewID();
     const lib = Library.get();
     let newBook = new Book(id, title, author, progress, total);
     lib.push(newBook);
-    // localStorage.setItem("globalID", JSON.stringify(id));
     localStorage.setItem("library", JSON.stringify(lib));
     return newBook;
   }
@@ -63,12 +74,15 @@ class Library {
     localStorage.setItem("library", JSON.stringify(lib));
   }
 
-  // overwriteBook(index, title, author, progress, total) {
-  //   let newBook = new Book(title, author, progress, total, row);
-  //   this.arr[index] = newBook;
-  //   localStorage.setItem("library", JSON.stringify(this.arr));
-  //   return newBook;
-  // }
+  static overwriteBook(oldBook, title, author, progress, total) {
+    oldBook.title = title;
+    oldBook.author = author;
+    oldBook.progress = progress;
+    oldBook.total = total;
+
+    const lib = Library.get();
+    localStorage.setItem("library", JSON.stringify(lib));
+  }
 }
 
 /**
@@ -89,7 +103,9 @@ class UI {
       <td>${book.author}</td>
       <td class="num">${book.progress}/${book.total}</td>
       <td class="btn-cell">
-        <!-- <button class="edit-btn"><i class="fa-solid fa-pen"></i></button> -->
+        <button class="edit-btn">
+          <i class="fa-solid fa-pen"></i>
+        </button>
         <button class="remove-btn">
           <i class="fa-solid fa-trash"></i>
         </button>
@@ -103,6 +119,8 @@ class UI {
       el.parentElement.parentElement.remove();
     }
   }
+
+  static reloadBook(book, el) {}
 
   static clearFields(form) {
     form.querySelectorAll("input").forEach((i) => {
@@ -131,13 +149,36 @@ const addForm = document.querySelector(".add-book-form");
 const editForm = document.querySelector(".edit-book-form");
 const addBookBtn = document.querySelector("#add-book-btn");
 
-/* Initialize */
-// let currentEditingIndex = -1;
-// let library = new Library();
-// console.log(localStorage.getItem("library"));
-// reloadTable();
+let editingID = -1;
 
 document.addEventListener("DOMContentLoaded", UI.displayBooks());
+
+document.querySelector("#library").addEventListener("click", (e) => {
+  if (e.target.classList.contains("remove-btn")) {
+    Library.removeBook(Number(e.target.parentElement.parentElement.id));
+    UI.deleteBook(e.target);
+  } else if (e.target.classList.contains("edit-btn")) {
+    // show and load edit modal
+
+    // FIXME: problem here.
+    // for some reason getBookFromID is always returning null
+    // even though the editingID is correct
+    editingID = Number(e.target.parentElement.parentElement.id);
+    console.log(editingID);
+    let book = Library.getBookFromID(editingID);
+    console.log(book);
+
+    if (book != null) {
+      // pre-populate fields
+      editForm.title.value = book.title;
+      editForm.author.value = book.author;
+      editForm.progress.value = book.progress;
+      editForm.total.value = book.total;
+    }
+
+    editModal.style.display = "block";
+  }
+});
 
 createBookBtn.addEventListener("click", (e) => {
   addModal.style.display = "block";
@@ -146,7 +187,7 @@ createBookBtn.addEventListener("click", (e) => {
 closeModalBtns.forEach((btn) =>
   btn.addEventListener("click", (e) => {
     if (e.target.classList.contains("close-modal-btn")) {
-      let modal = e.target.parentNode.parentNode.parentNode.parentNode;
+      let modal = e.target.parentNode.parentNode.parentNode;
       if (modal === addModal) {
         addModal.style.display = "none";
         UI.clearFields(addForm);
@@ -189,65 +230,24 @@ addForm.addEventListener("submit", (e) => {
   console.log(localStorage.getItem("library"));
 });
 
-document.querySelector("#library").addEventListener("click", (e) => {
-  Library.removeBook(Number(e.target.parentElement.parentElement.id));
-  UI.deleteBook(e.target);
+editForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  if (!UI.checkRequiredInputs(editForm)) {
+    return;
+  }
+
+  let inputs = editForm.elements;
+  let oldBook = Library.getBookFromID(editingID);
+
+  Library.overwriteBook(
+    oldBook,
+    inputs["title"].value,
+    inputs["author"].value,
+    inputs["progress"].value,
+    inputs["total"].value
+  );
+
+  UI.clearFields(editForm);
+  editModal.style.display = "none";
 });
-
-// editForm.addEventListener("submit", (e) => {
-//   e.preventDefault();
-
-//   if (!UI.checkRequiredInputs(editForm)) {
-//     return;
-//   }
-
-//   let inputs = editForm.elements;
-//   Library.overwriteBook(
-//     currentEditingIndex,
-//     inputs["title"].value,
-//     inputs["author"].value,
-//     inputs["progress"].value,
-//     inputs["total"].value
-//   );
-
-//   UI.clearFields(editForm);
-//   reloadTable();
-//   editModal.style.display = "none";
-//   console.log(localStorage.getItem("library"));
-// });
-
-// function addEntryEventListeners(book) {
-//   editBtn = book.row.querySelector(".edit-btn");
-//   removeBtn = book.row.querySelector(".remove-btn");
-
-//   editBtn.addEventListener("click", () => {
-//     currentEditingIndex = Library.getIndex(book);
-//     editModal.style.display = "block";
-
-//     editForm.title.value = book.title;
-//     editForm.author.value = book.author;
-//     editForm.progress.value = book.progress;
-//     editForm.total.value = book.total;
-//   });
-
-//   removeBtn.addEventListener("click", () => {
-//     Library.removeBook(Library.getIndex(book));
-
-//     removeBookFromTable(book.row);
-//     console.log(localStorage.getItem("library"));
-//   });
-// }
-
-// function reloadTable() {
-//   if (window.localStorage.getItem("library") != null) {
-//     tableEl.querySelectorAll("tr.entry").forEach((row) => {
-//       row.remove();
-//     });
-
-//     library.arr = JSON.parse(localStorage.getItem("library"));
-//     library.arr.forEach((book) => {
-//       book.row = tableEl.insertRow(-1);
-//       addBookToTable(book);
-//     });
-//   }
-// }
