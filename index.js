@@ -87,8 +87,7 @@ class UI {
     row.innerHTML += `
       <td>${book.title}</td>
       <td>${book.author}</td>
-      <td class="num">${book.progress}</td>
-      <td class="num">${book.total}</td>
+      <td class="num">${book.progress}/${book.total}</td>
       <td class="btn-cell">
         <!-- <button class="edit-btn"><i class="fa-solid fa-pen"></i></button> -->
         <button class="remove-btn">
