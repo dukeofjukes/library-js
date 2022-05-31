@@ -91,9 +91,9 @@ class UI {
       <td class="num">${book.total}</td>
       <td class="btn-cell">
         <!-- <button class="edit-btn"><i class="fa-solid fa-pen"></i></button> -->
-        <a href="#" class="remove-btn">
+        <button class="remove-btn">
           <i class="fa-solid fa-trash"></i>
-        </a>
+        </button>
       </td>
     `;
     table.appendChild(row);

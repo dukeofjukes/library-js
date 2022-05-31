@@ -67,6 +67,11 @@ body {
   border-radius: 16px;
 }
 
+button > i {
+  // Prevent font-awesome icon from blocking parent button's click event
+  pointer-events: none;
+}
+
 form {
   @include card;
   width: 500px;
