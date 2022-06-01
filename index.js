@@ -28,7 +28,7 @@ class Library {
       id = JSON.parse(localStorage.getItem("globalID"));
     }
 
-    localStorage.setItem("globalID", id + 1);
+    localStorage.setItem("globalID", (id + 1) % Number.MAX_SAFE_INTEGER);
 
     return id;
   }
@@ -43,14 +43,28 @@ class Library {
 
   static getBookFromID(id) {
     const lib = Library.get();
+    let target = null;
 
     lib.forEach((book) => {
       if (book.id === id) {
-        return book;
+        target = book;
       }
     });
 
-    return null;
+    return target;
+  }
+
+  static getBookIndexFromID(id) {
+    const lib = Library.get();
+    let target = null;
+
+    lib.forEach((book, index) => {
+      if (book.id === id) {
+        target = index;
+      }
+    });
+
+    return target;
   }
 
   static addBook(title, author, progress, total) {
@@ -74,14 +88,17 @@ class Library {
     localStorage.setItem("library", JSON.stringify(lib));
   }
 
-  static overwriteBook(oldBook, title, author, progress, total) {
-    oldBook.title = title;
-    oldBook.author = author;
-    oldBook.progress = progress;
-    oldBook.total = total;
-
+  static overwriteBook(id, title, author, progress, total) {
+    let index = this.getBookIndexFromID(id);
     const lib = Library.get();
+
+    lib[index].title = title;
+    lib[index].author = author;
+    lib[index].progress = progress;
+    lib[index].total = total;
+
     localStorage.setItem("library", JSON.stringify(lib));
+    return lib[index];
   }
 }
 
@@ -94,11 +111,8 @@ class UI {
     lib.forEach((book) => UI.addBookToTable(book));
   }
 
-  static addBookToTable(book) {
-    const table = document.querySelector("#library");
-    const row = document.createElement("tr");
-    row.id = String(book.id);
-    row.innerHTML += `
+  static createRow(book) {
+    return `
       <td>${book.title}</td>
       <td>${book.author}</td>
       <td class="num">${book.progress}/${book.total}</td>
@@ -111,6 +125,13 @@ class UI {
         </button>
       </td>
     `;
+  }
+
+  static addBookToTable(book) {
+    const table = document.querySelector("#library");
+    const row = document.createElement("tr");
+    row.id = String(book.id);
+    row.innerHTML = this.createRow(book);
     table.appendChild(row);
   }
 
@@ -120,7 +141,16 @@ class UI {
     }
   }
 
-  static reloadBook(book, el) {}
+  static reloadBook(book) {
+    const table = document.querySelector("#library");
+    table.childNodes.forEach((row, index) => {
+      if (Number(row.id) === book.id) {
+        table.deleteRow(index);
+        let row = table.insertRow(index);
+        row.innerHTML = this.createRow(book);
+      }
+    });
+  }
 
   static clearFields(form) {
     form.querySelectorAll("input").forEach((i) => {
@@ -159,17 +189,10 @@ document.querySelector("#library").addEventListener("click", (e) => {
     UI.deleteBook(e.target);
   } else if (e.target.classList.contains("edit-btn")) {
     // show and load edit modal
-
-    // FIXME: problem here.
-    // for some reason getBookFromID is always returning null
-    // even though the editingID is correct
     editingID = Number(e.target.parentElement.parentElement.id);
-    console.log(editingID);
     let book = Library.getBookFromID(editingID);
-    console.log(book);
 
     if (book != null) {
-      // pre-populate fields
       editForm.title.value = book.title;
       editForm.author.value = book.author;
       editForm.progress.value = book.progress;
@@ -224,6 +247,8 @@ addForm.addEventListener("submit", (e) => {
     inputs["total"].value
   );
 
+  console.log(newBook);
+
   UI.addBookToTable(newBook);
   UI.clearFields(addForm);
   addModal.style.display = "none";
@@ -238,16 +263,16 @@ editForm.addEventListener("submit", (e) => {
   }
 
   let inputs = editForm.elements;
-  let oldBook = Library.getBookFromID(editingID);
 
-  Library.overwriteBook(
-    oldBook,
+  let newBook = Library.overwriteBook(
+    editingID,
     inputs["title"].value,
     inputs["author"].value,
     inputs["progress"].value,
     inputs["total"].value
   );
 
+  UI.reloadBook(newBook);
   UI.clearFields(editForm);
   editModal.style.display = "none";
 });
